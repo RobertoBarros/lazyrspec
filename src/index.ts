@@ -6,6 +6,7 @@ import {
 } from "./rspec";
 
 const specPath = process.argv[2] || "spec";
+const exitAfterStart = process.env.LAZYRSPEC_EXIT_AFTER_START === "1";
 
 let rspecResult = runRspec(specPath);
 let examples = rspecResult.examples;
@@ -66,3 +67,9 @@ renderer.keyInput.on("keypress", (key) => {
 });
 
 renderer.start();
+
+if (exitAfterStart) {
+  elapsed.destroy();
+  renderer.destroy();
+  process.exit(0);
+}

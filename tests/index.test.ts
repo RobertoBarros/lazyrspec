@@ -13,18 +13,18 @@ describe("index.ts", () => {
   });
 
   test("starts without crashing with valid spec path", async () => {
-    const proc = Bun.spawn(["bun", "src/index.ts", "spec/calculator_spec.rb"], {
+    const proc = Bun.spawnSync(["bun", "src/index.ts", "spec/calculator_spec.rb"], {
       stdout: "pipe",
       stderr: "pipe",
-      env: { ...process.env, TERM: "dumb" },
+      env: {
+        ...process.env,
+        TERM: "dumb",
+        LAZYRSPEC_EXIT_AFTER_START: "1",
+      },
     });
-
-    // Give it time to boot, then kill it
-    await Bun.sleep(2000);
-    proc.kill();
-    await proc.exited;
-
-    const stderr = await new Response(proc.stderr).text();
+    
+    const stderr = proc.stderr.toString();
+    expect(proc.exitCode).toBe(0);
     expect(stderr).not.toContain("Failed to parse RSpec output");
   });
 });

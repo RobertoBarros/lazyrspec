@@ -4,27 +4,27 @@ import { ElapsedTimer, formatElapsed } from "../src/elapsed-timer";
 
 describe("formatElapsed", () => {
   test("less than 30 seconds", () => {
-    expect(formatElapsed(0)).toBe("less than 30 seconds ago");
-    expect(formatElapsed(15_000)).toBe("less than 30 seconds ago");
-    expect(formatElapsed(29_000)).toBe("less than 30 seconds ago");
+    expect(formatElapsed(0)).toBe("updated less than 30 seconds ago");
+    expect(formatElapsed(15_000)).toBe("updated less than 30 seconds ago");
+    expect(formatElapsed(29_000)).toBe("updated less than 30 seconds ago");
   });
 
   test("less than a minute", () => {
-    expect(formatElapsed(30_000)).toBe("less than a minute ago");
-    expect(formatElapsed(45_000)).toBe("less than a minute ago");
-    expect(formatElapsed(59_000)).toBe("less than a minute ago");
+    expect(formatElapsed(30_000)).toBe("updated less than a minute ago");
+    expect(formatElapsed(45_000)).toBe("updated less than a minute ago");
+    expect(formatElapsed(59_000)).toBe("updated less than a minute ago");
   });
 
   test("minutes", () => {
-    expect(formatElapsed(60_000)).toBe("1 minute ago");
-    expect(formatElapsed(120_000)).toBe("2 minutes ago");
-    expect(formatElapsed(300_000)).toBe("5 minutes ago");
-    expect(formatElapsed(3_599_000)).toBe("59 minutes ago");
+    expect(formatElapsed(60_000)).toBe("updated 1 minute ago");
+    expect(formatElapsed(120_000)).toBe("updated 2 minutes ago");
+    expect(formatElapsed(300_000)).toBe("updated 5 minutes ago");
+    expect(formatElapsed(3_599_000)).toBe("updated 59 minutes ago");
   });
 
   test("hours", () => {
-    expect(formatElapsed(3_600_000)).toBe("1 hour ago");
-    expect(formatElapsed(7_200_000)).toBe("2 hours ago");
+    expect(formatElapsed(3_600_000)).toBe("updated 1 hour ago");
+    expect(formatElapsed(7_200_000)).toBe("updated 2 hours ago");
   });
 });
 
@@ -42,7 +42,7 @@ describe("ElapsedTimer", () => {
     timer = new ElapsedTimer(renderer, { prefix: "keys" });
 
     expect(timer.currentContent).toContain("keys");
-    expect(timer.currentContent).toContain("less than 30 seconds ago");
+    expect(timer.currentContent).toContain("updated less than 30 seconds ago");
   });
 
   test("showMessage replaces content temporarily", async () => {
@@ -61,7 +61,7 @@ describe("ElapsedTimer", () => {
     timer.reset();
 
     expect(timer.currentContent).toContain("keys");
-    expect(timer.currentContent).toContain("less than 30 seconds ago");
+    expect(timer.currentContent).toContain("updated less than 30 seconds ago");
   });
 
   test("setPrefix updates the prefix", async () => {

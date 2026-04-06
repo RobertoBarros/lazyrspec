@@ -3,6 +3,7 @@ import {
   buildDetail,
   buildOptions,
   buildSummaryText,
+  extractJson,
   statusIcon,
   statusColor,
   type RSpecExample,
@@ -113,6 +114,24 @@ describe("buildSummaryText", () => {
     expect(buildSummaryText(summary)).toBe(
       "3 examples, 1 failed, 1 pending (0.001s)",
     );
+  });
+});
+
+describe("extractJson", () => {
+  test("extracts JSON from clean output", () => {
+    const json = '{"version":"3.13.6","examples":[]}';
+    expect(extractJson(json)).toBe(json);
+  });
+
+  test("extracts JSON when preceded by banner text", () => {
+    const banner = "*** Notice ***\n* Some warning *\n***************\n\n";
+    const json = '{"version":"3.13.6","examples":[]}';
+    expect(extractJson(banner + json)).toBe(json);
+  });
+
+  test("returns empty string when no JSON present", () => {
+    expect(extractJson("no json here")).toBe("");
+    expect(extractJson("")).toBe("");
   });
 });
 

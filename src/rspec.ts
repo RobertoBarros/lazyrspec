@@ -56,6 +56,17 @@ function emptyResult(): RSpecResult {
   };
 }
 
+// rspec --format json sends JSON to stdout, but gems, plugins or project
+// configurations can print banners or notices to stdout before the JSON.
+// JSON.parse() fails when the output contains text before the opening '{'.
+// This function extracts only the JSON portion of the output.
+export function extractJson(output: string): string {
+  const start = output.indexOf("{");
+  const end = output.lastIndexOf("}");
+  if (start === -1 || end === -1) return "";
+  return output.substring(start, end + 1);
+}
+
 export function runRspec(specPath: string): RSpecResult {
   const proc = Bun.spawnSync(["rspec", specPath, "--format", "json"], {
     stdout: "pipe",
@@ -66,7 +77,7 @@ export function runRspec(specPath: string): RSpecResult {
   const stderr = proc.stderr.toString();
 
   try {
-    return JSON.parse(output);
+    return JSON.parse(extractJson(output));
   } catch {
     const missingRspec =
       stderr.includes("Gem::GemNotFoundException") ||

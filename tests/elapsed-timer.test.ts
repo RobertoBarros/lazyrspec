@@ -3,21 +3,28 @@ import { createTestRenderer } from "@opentui/core/testing";
 import { ElapsedTimer, formatElapsed } from "../src/elapsed-timer";
 
 describe("formatElapsed", () => {
-  test("shows seconds for less than a minute", () => {
-    expect(formatElapsed(0)).toBe("0s ago");
-    expect(formatElapsed(5_000)).toBe("5s ago");
-    expect(formatElapsed(59_000)).toBe("59s ago");
+  test("less than 30 seconds", () => {
+    expect(formatElapsed(0)).toBe("less than 30 seconds ago");
+    expect(formatElapsed(15_000)).toBe("less than 30 seconds ago");
+    expect(formatElapsed(29_000)).toBe("less than 30 seconds ago");
   });
 
-  test("shows minutes for less than an hour", () => {
-    expect(formatElapsed(60_000)).toBe("1m ago");
-    expect(formatElapsed(300_000)).toBe("5m ago");
-    expect(formatElapsed(3_599_000)).toBe("59m ago");
+  test("less than a minute", () => {
+    expect(formatElapsed(30_000)).toBe("less than a minute ago");
+    expect(formatElapsed(45_000)).toBe("less than a minute ago");
+    expect(formatElapsed(59_000)).toBe("less than a minute ago");
   });
 
-  test("shows hours for 60 minutes or more", () => {
-    expect(formatElapsed(3_600_000)).toBe("1h ago");
-    expect(formatElapsed(7_200_000)).toBe("2h ago");
+  test("minutes", () => {
+    expect(formatElapsed(60_000)).toBe("1 minute ago");
+    expect(formatElapsed(120_000)).toBe("2 minutes ago");
+    expect(formatElapsed(300_000)).toBe("5 minutes ago");
+    expect(formatElapsed(3_599_000)).toBe("59 minutes ago");
+  });
+
+  test("hours", () => {
+    expect(formatElapsed(3_600_000)).toBe("1 hour ago");
+    expect(formatElapsed(7_200_000)).toBe("2 hours ago");
   });
 });
 
@@ -35,7 +42,7 @@ describe("ElapsedTimer", () => {
     timer = new ElapsedTimer(renderer, { prefix: "keys" });
 
     expect(timer.currentContent).toContain("keys");
-    expect(timer.currentContent).toContain("0s ago");
+    expect(timer.currentContent).toContain("less than 30 seconds ago");
   });
 
   test("showMessage replaces content temporarily", async () => {
@@ -54,7 +61,7 @@ describe("ElapsedTimer", () => {
     timer.reset();
 
     expect(timer.currentContent).toContain("keys");
-    expect(timer.currentContent).toContain("0s ago");
+    expect(timer.currentContent).toContain("less than 30 seconds ago");
   });
 
   test("setPrefix updates the prefix", async () => {

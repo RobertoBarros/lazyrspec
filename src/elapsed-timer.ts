@@ -3,11 +3,14 @@ import type { RenderContext } from "@opentui/core";
 
 function formatElapsed(ms: number): string {
   const seconds = Math.floor(ms / 1000);
-  if (seconds < 60) return `${seconds}s ago`;
+  if (seconds < 30) return "less than 30 seconds ago";
+  if (seconds < 60) return "less than a minute ago";
   const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return `${minutes}m ago`;
+  if (minutes === 1) return "1 minute ago";
+  if (minutes < 60) return `${minutes} minutes ago`;
   const hours = Math.floor(minutes / 60);
-  return `${hours}h ago`;
+  if (hours === 1) return "1 hour ago";
+  return `${hours} hours ago`;
 }
 
 export interface ElapsedTimerOptions {

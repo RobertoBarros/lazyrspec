@@ -26,6 +26,8 @@ if (options.length === 0) {
 }
 
 let summaryText = "";
+let hidePassed = false;
+let filteredIndices: number[] = [];
 
 const renderer = await createCliRenderer({
   exitOnCtrlC: true,
@@ -97,7 +99,7 @@ const footer = new BoxRenderable(renderer, {
   height: 1,
 });
 
-const FOOTER_KEYS = " q: Quit  ↑↓: Navigate  r: Re-run";
+const FOOTER_KEYS = " q: Quit  ↑↓: Navigate  r: Re-run  f: Filter passed";
 
 const footerText = new TextRenderable(renderer, {
   content: FOOTER_KEYS,
@@ -108,9 +110,29 @@ const footerText = new TextRenderable(renderer, {
 
 footer.add(footerText);
 
-function showSelected(index: number) {
-  const ex = examples[index];
-  const opt = options[index];
+function applyFilter() {
+  if (hidePassed) {
+    filteredIndices = examples
+      .map((ex, i) => (ex.status !== "passed" ? i : -1))
+      .filter((i) => i !== -1);
+  } else {
+    filteredIndices = examples.map((_, i) => i);
+  }
+
+  const filtered = filteredIndices.map((i) => options[i]!);
+  select.options = filtered as any;
+  select.setSelectedIndex(0);
+
+  if (filteredIndices.length > 0) {
+    showSelected(0);
+  }
+}
+
+function showSelected(selectIndex: number) {
+  const originalIndex = filteredIndices[selectIndex];
+  if (originalIndex === undefined) return;
+  const ex = examples[originalIndex];
+  const opt = options[originalIndex];
   if (!ex || !opt) return;
   titleText.content = ex.full_description;
   titleText.fg = statusColor[ex.status] || "#ffffff";
@@ -123,7 +145,7 @@ function updateSummary() {
   leftPanel.title = ` Tests (${summaryText}) `;
 }
 
-showSelected(0);
+applyFilter();
 updateSummary();
 
 select.on(SelectRenderableEvents.SELECTION_CHANGED, () => {
@@ -141,6 +163,10 @@ renderer.keyInput.on("keypress", (key) => {
     renderer.destroy();
     process.exit(0);
   }
+  if (key.name === "f" && !key.ctrl && !key.meta) {
+    hidePassed = !hidePassed;
+    applyFilter();
+  }
   if (key.name === "r" && !key.ctrl && !key.meta) {
     footerText.content = " Running rspec...";
     setTimeout(() => {
@@ -148,10 +174,7 @@ renderer.keyInput.on("keypress", (key) => {
       examples = rspecResult.examples;
       options = buildOptions(examples);
 
-      select.options = options as any;
-      select.setSelectedIndex(0);
-
-      showSelected(0);
+      applyFilter();
       updateSummary();
       footerText.content = FOOTER_KEYS;
     }, 10);

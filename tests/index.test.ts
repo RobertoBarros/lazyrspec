@@ -2,7 +2,7 @@ import { test, expect, describe } from "bun:test";
 
 describe("index.ts", () => {
   test("exits gracefully when no examples found", () => {
-    const proc = Bun.spawnSync(["bun", "index.ts", "nonexistent_spec.rb"], {
+    const proc = Bun.spawnSync(["bun", "src/index.ts", "nonexistent_spec.rb"], {
       stdout: "pipe",
       stderr: "pipe",
     });
@@ -13,7 +13,7 @@ describe("index.ts", () => {
   });
 
   test("starts without crashing with valid spec path", async () => {
-    const proc = Bun.spawn(["bun", "index.ts", "spec/calculator_spec.rb"], {
+    const proc = Bun.spawn(["bun", "src/index.ts", "spec/calculator_spec.rb"], {
       stdout: "pipe",
       stderr: "pipe",
       env: { ...process.env, TERM: "dumb" },

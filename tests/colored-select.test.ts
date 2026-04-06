@@ -1,7 +1,7 @@
 import { test, expect, describe } from "bun:test";
 import { createTestRenderer } from "@opentui/core/testing";
 import { BoxRenderable } from "@opentui/core";
-import { createColoredSelect } from "./colored-select";
+import { createColoredSelect } from "../src/colored-select";
 
 async function setup() {
   const { renderer, mockInput, renderOnce, captureCharFrame } =

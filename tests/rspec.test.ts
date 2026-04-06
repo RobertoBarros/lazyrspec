@@ -6,7 +6,7 @@ import {
   statusIcon,
   statusColor,
   type RSpecExample,
-} from "./rspec";
+} from "../src/rspec";
 
 const passedExample: RSpecExample = {
   id: "./spec/calc_spec.rb[1:1:1]",

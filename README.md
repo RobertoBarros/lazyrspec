@@ -1,15 +1,40 @@
 # lazyrspec
 
-To install dependencies:
+TUI for running and browsing RSpec test results.
+
+## Install dependencies
 
 ```bash
 bun install
 ```
 
-To run:
+## Run
 
 ```bash
-bun run index.ts
+bun start
 ```
 
-This project was created using `bun init` in bun v1.3.11. [Bun](https://bun.com) is a fast all-in-one JavaScript runtime.
+With a specific spec path:
+
+```bash
+bun start spec/calculator_spec.rb
+```
+
+With watch mode:
+
+```bash
+bun --watch src/index.ts
+```
+
+## Test
+
+```bash
+bun test
+```
+
+## Build binary
+
+```bash
+bun run build
+sudo mv lazyrspec /usr/local/bin/
+```

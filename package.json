@@ -1,13 +1,14 @@
 {
   "name": "lazyrspec",
-  "module": "index.ts",
+  "module": "src/index.ts",
   "type": "module",
   "private": true,
   "bin": {
-    "lazyrspec": "./index.ts"
+    "lazyrspec": "./src/index.ts"
   },
   "scripts": {
-    "build": "bun build --compile ./index.ts --outfile lazyrspec"
+    "start": "bun src/index.ts",
+    "build": "bun build --compile ./src/index.ts --outfile lazyrspec"
   },
   "devDependencies": {
     "@types/bun": "latest"

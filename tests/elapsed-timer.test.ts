@@ -32,44 +32,42 @@ describe("ElapsedTimer", () => {
   let renderer: Awaited<ReturnType<typeof createTestRenderer>>["renderer"];
   let timer: ElapsedTimer;
 
+  async function setup(prefix = "keys") {
+    ({ renderer } = await createTestRenderer({ width: 80, height: 10 }));
+    timer = new ElapsedTimer(renderer, { prefix });
+    return timer;
+  }
+
+  function getRenderedText() {
+    return timer.text.content.chunks.map((chunk) => chunk.text).join("");
+  }
+
   afterEach(() => {
     timer?.destroy();
     renderer?.destroy();
   });
 
   test("initializes with prefix and elapsed time", async () => {
-    ({ renderer } = await createTestRenderer({ width: 80, height: 10 }));
-    timer = new ElapsedTimer(renderer, { prefix: "keys" });
+    await setup();
 
-    expect(timer.currentContent).toContain("keys");
-    expect(timer.currentContent).toContain("updated less than 30 seconds ago");
+    expect(getRenderedText()).toContain("keys");
+    expect(getRenderedText()).toContain("updated less than 30 seconds ago");
   });
 
   test("showMessage replaces content temporarily", async () => {
-    ({ renderer } = await createTestRenderer({ width: 80, height: 10 }));
-    timer = new ElapsedTimer(renderer, { prefix: "keys" });
+    await setup();
 
     timer.showMessage("Loading...");
-    expect(timer.currentContent).toBe("Loading...");
+    expect(getRenderedText()).toBe("Loading...");
   });
 
   test("reset restores prefix with fresh elapsed time", async () => {
-    ({ renderer } = await createTestRenderer({ width: 80, height: 10 }));
-    timer = new ElapsedTimer(renderer, { prefix: "keys" });
+    await setup();
 
     timer.showMessage("Loading...");
     timer.reset();
 
-    expect(timer.currentContent).toContain("keys");
-    expect(timer.currentContent).toContain("updated less than 30 seconds ago");
-  });
-
-  test("setPrefix updates the prefix", async () => {
-    ({ renderer } = await createTestRenderer({ width: 80, height: 10 }));
-    timer = new ElapsedTimer(renderer, { prefix: "old" });
-
-    timer.setPrefix("new");
-    expect(timer.currentContent).toContain("new");
-    expect(timer.currentContent).not.toContain("old");
+    expect(getRenderedText()).toContain("keys");
+    expect(getRenderedText()).toContain("updated less than 30 seconds ago");
   });
 });

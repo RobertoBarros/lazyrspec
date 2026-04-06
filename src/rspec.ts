@@ -41,18 +41,47 @@ export const statusColor: Record<string, string> = {
   pending: "#ffaa00",
 };
 
+function emptyResult(): RSpecResult {
+  return {
+    version: "0",
+    examples: [],
+    summary: {
+      duration: 0,
+      example_count: 0,
+      failure_count: 0,
+      pending_count: 0,
+      errors_outside_of_examples_count: 0,
+    },
+    summary_line: "",
+  };
+}
+
 export function runRspec(specPath: string): RSpecResult {
   const proc = Bun.spawnSync(["rspec", specPath, "--format", "json"], {
     stdout: "pipe",
     stderr: "pipe",
   });
 
-  const output = proc.stdout.toString();
+  const output = proc.stdout.toString().trim();
+  const stderr = proc.stderr.toString();
+
   try {
     return JSON.parse(output);
   } catch {
+    const missingRspec =
+      stderr.includes("Gem::GemNotFoundException") ||
+      stderr.includes("can't find gem rspec-core") ||
+      stderr.includes("command not found");
+    const missingSpec =
+      stderr.includes("No such file or directory") ||
+      stderr.includes("cannot load such file");
+
+    if (!output && (missingRspec || missingSpec)) {
+      return emptyResult();
+    }
+
     console.error("Failed to parse RSpec output. Is rspec installed?");
-    console.error(proc.stderr.toString());
+    console.error(stderr);
     process.exit(1);
   }
 }
@@ -99,4 +128,3 @@ export function buildOptions(examples: RSpecExample[]): TestOption[] {
 export function buildSummaryText(summary: RSpecResult["summary"]): string {
   return `${summary.example_count} examples, ${summary.failure_count} failed, ${summary.pending_count} pending (${summary.duration.toFixed(3)}s)`;
 }
-

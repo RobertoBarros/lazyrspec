@@ -24,7 +24,6 @@ export class ElapsedTimer {
   private prefix: string;
   private lastRunAt: number;
   private interval: ReturnType<typeof setInterval>;
-  private _currentContent: string = "";
 
   constructor(ctx: RenderContext, opts: ElapsedTimerOptions) {
     this.prefix = opts.prefix;
@@ -46,24 +45,21 @@ export class ElapsedTimer {
     this.update();
   }
 
-  setPrefix(prefix: string) {
-    this.prefix = prefix;
-    this.update();
-  }
-
-  get currentContent(): string {
-    return this._currentContent;
-  }
-
   showMessage(message: string) {
-    this._currentContent = message;
-    this.text.content = message;
+    this.applyContent(message);
   }
 
   private update() {
     const elapsed = formatElapsed(Date.now() - this.lastRunAt);
-    this._currentContent = `${this.prefix}  (${elapsed})`;
-    this.text.content = this._currentContent;
+    this.applyContent(this.buildElapsedMessage(elapsed));
+  }
+
+  private buildElapsedMessage(elapsed: string) {
+    return `${this.prefix}  (${elapsed})`;
+  }
+
+  private applyContent(content: string) {
+    this.text.content = content;
   }
 
   destroy() {

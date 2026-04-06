@@ -1,0 +1,21 @@
+{
+  "name": "lazyrspec",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "bin": {
+    "lazyrspec": "./index.ts"
+  },
+  "scripts": {
+    "build": "bun build --compile ./index.ts --outfile lazyrspec"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@opentui/core": "^0.1.96"
+  }
+}

@@ -13,6 +13,7 @@ import {
   buildSummaryText,
   statusColor,
 } from "./rspec";
+import { ElapsedTimer } from "./elapsed-timer";
 
 const specPath = process.argv[2] || "spec";
 
@@ -101,14 +102,12 @@ const footer = new BoxRenderable(renderer, {
 
 const FOOTER_KEYS = " q: Quit  ↑↓: Navigate  r: Re-run  f: Filter passed";
 
-const footerText = new TextRenderable(renderer, {
-  content: FOOTER_KEYS,
+const elapsed = new ElapsedTimer(renderer, {
+  prefix: FOOTER_KEYS,
   fg: "#888888",
-  wrapMode: "none",
-  truncate: true,
 });
 
-footer.add(footerText);
+footer.add(elapsed.text);
 
 function applyFilter() {
   if (hidePassed) {
@@ -168,7 +167,7 @@ renderer.keyInput.on("keypress", (key) => {
     applyFilter();
   }
   if (key.name === "r" && !key.ctrl && !key.meta) {
-    footerText.content = " Running rspec...";
+    elapsed.showMessage(" Running rspec...");
     setTimeout(() => {
       rspecResult = runRspec(specPath);
       examples = rspecResult.examples;
@@ -176,7 +175,7 @@ renderer.keyInput.on("keypress", (key) => {
 
       applyFilter();
       updateSummary();
-      footerText.content = FOOTER_KEYS;
+      elapsed.reset();
     }, 10);
   }
 });

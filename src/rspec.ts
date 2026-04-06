@@ -99,3 +99,4 @@ export function buildOptions(examples: RSpecExample[]): TestOption[] {
 export function buildSummaryText(summary: RSpecResult["summary"]): string {
   return `${summary.example_count} examples, ${summary.failure_count} failed, ${summary.pending_count} pending (${summary.duration.toFixed(3)}s)`;
 }
+

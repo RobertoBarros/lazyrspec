@@ -1,9 +1,9 @@
 class Lazyrspec < Formula
   desc "A lazy TUI for running RSpec tests"
   homepage "https://github.com/RobertoBarros/lazyrspec"
-  url "https://github.com/RobertoBarros/lazyrspec/releases/download/v0.1.8/lazyrspec-0.1.8-darwin-arm64.tar.gz"
-  sha256 "457f5c029a2b1e16bf9b668d95097cb077071e0aa63814f7c141867774355fef"
-  version "0.1.8"
+  url "https://github.com/RobertoBarros/lazyrspec/releases/download/v0.1.9/lazyrspec-0.1.9-darwin-arm64.tar.gz"
+  sha256 "12ebceb49280c978d3b13b3cd1a74fb54fcc7bf6f0cc2af622c5503c947f0858"
+  version "0.1.9"
   license "MIT"
 
   def install

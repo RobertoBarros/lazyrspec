@@ -2,7 +2,7 @@ class Lazyrspec < Formula
   desc "A lazy TUI for running RSpec tests"
   homepage "https://github.com/RobertoBarros/lazyrspec"
   url "https://github.com/RobertoBarros/lazyrspec/archive/refs/tags/v0.1.3.tar.gz"
-  sha256 "PLACEHOLDER"
+  sha256 "e1f07f101ac4d88586772389acb0fe032a0a199892b530b5ef0185b00d8da09b"
   version "0.1.3"
   license "MIT"
 

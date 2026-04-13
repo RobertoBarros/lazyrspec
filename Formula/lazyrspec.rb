@@ -1,16 +1,12 @@
 class Lazyrspec < Formula
   desc "A lazy TUI for running RSpec tests"
   homepage "https://github.com/RobertoBarros/lazyrspec"
-  url "https://github.com/RobertoBarros/lazyrspec/archive/refs/tags/v0.1.3.tar.gz"
-  sha256 "e1f07f101ac4d88586772389acb0fe032a0a199892b530b5ef0185b00d8da09b"
-  version "0.1.3"
+  url "https://github.com/RobertoBarros/lazyrspec/releases/download/v0.1.4/lazyrspec-0.1.4-darwin-arm64.tar.gz"
+  sha256 "febc5d340ef244ea6a45d641c0f2156ef3f6fa734ba934b5df24ded48bca81ed"
+  version "0.1.4"
   license "MIT"
 
-  depends_on "oven-sh/bun/bun" => :build
-
   def install
-    system "bun", "install"
-    system "bun", "build", "--compile", "./src/index.ts", "--outfile", "lazyrspec"
     bin.install "lazyrspec"
   end
 

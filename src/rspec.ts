@@ -1,3 +1,5 @@
+import { readFileSync, existsSync } from "node:fs";
+
 export interface RSpecException {
   class: string;
   message: string;
@@ -42,16 +44,30 @@ export const statusColor: Record<string, string> = {
 };
 
 export function checkRspecInstalled(): void {
-  const proc = Bun.spawnSync(["rspec", "--version"], {
-    stdout: "pipe",
-    stderr: "pipe",
-  });
+  if (existsSync("Gemfile.lock")) {
+    const content = readFileSync("Gemfile.lock", "utf-8");
+    if (content.includes("rspec-core")) return;
 
-  if (proc.exitCode !== 0) {
-    console.error("RSpec is not installed or not available in your PATH.");
-    console.error("Install it with: gem install rspec");
+    console.error("rspec-core not found in Gemfile.lock.");
+    console.error("Add it with: bundle add rspec");
     process.exit(1);
   }
+
+  if (existsSync("Gemfile")) {
+    const content = readFileSync("Gemfile", "utf-8");
+    if (content.includes("rspec")) {
+      console.error("rspec found in Gemfile but Gemfile.lock is missing.");
+      console.error("Run: bundle install");
+      process.exit(1);
+    }
+  }
+
+  const which = Bun.spawnSync(["which", "rspec"], { stdout: "pipe", stderr: "pipe" });
+  if (which.exitCode === 0) return;
+
+  console.error("rspec is not installed.");
+  console.error("Install it with: gem install rspec");
+  process.exit(1);
 }
 
 function emptyResult(): RSpecResult {

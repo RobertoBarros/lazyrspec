@@ -41,6 +41,19 @@ export const statusColor: Record<string, string> = {
   pending: "#ffaa00",
 };
 
+export function checkRspecInstalled(): void {
+  const proc = Bun.spawnSync(["rspec", "--version"], {
+    stdout: "pipe",
+    stderr: "pipe",
+  });
+
+  if (proc.exitCode !== 0) {
+    console.error("RSpec is not installed or not available in your PATH.");
+    console.error("Install it with: gem install rspec");
+    process.exit(1);
+  }
+}
+
 function emptyResult(): RSpecResult {
   return {
     version: "0",

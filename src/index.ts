@@ -1,9 +1,12 @@
 import { createAppWindows } from "./windows";
 import {
+  checkRspecInstalled,
   runRspec,
   buildOptions,
   buildSummaryText,
 } from "./rspec";
+
+checkRspecInstalled();
 
 const specPath = process.argv[2] || "spec";
 const exitAfterStart = process.env.LAZYRSPEC_EXIT_AFTER_START === "1";

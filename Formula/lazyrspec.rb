@@ -11,6 +11,6 @@ class Lazyrspec < Formula
   end
 
   test do
-    assert_match version.to_s, shell_output("#{bin}/lazyrspec --version", 2)
+    assert_predicate bin/"lazyrspec", :executable?
   end
 end

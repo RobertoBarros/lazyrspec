@@ -29,7 +29,7 @@ gh release create "${TAG}" "${TARBALL}" \
   --notes "Release ${TAG}"
 
 echo "==> Cleaning up..."
-rm -f "${BINARY_NAME}" "${TARBALL}"
+rm -f "${BINARY_NAME}" "${TARBALL}" .*.bun-build
 
 echo ""
 echo "Done! Update your Homebrew formula with:"

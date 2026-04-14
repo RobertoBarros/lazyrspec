@@ -35,10 +35,8 @@ jobs:
         run: |
           bun build --compile --target=${{ matrix.target }} ./src/index.ts --outfile lazyrspec-${{ matrix.suffix }}
 
-      - name: Strip and sign
-        run: |
-          strip lazyrspec-${{ matrix.suffix }}
-          codesign --sign - --force lazyrspec-${{ matrix.suffix }}
+      - name: Sign binary
+        run: codesign --sign - --force lazyrspec-${{ matrix.suffix }}
 
       - name: Create tarball
         id: tarball

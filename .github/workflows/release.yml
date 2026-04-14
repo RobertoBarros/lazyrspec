@@ -1,0 +1,110 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  release:
+    runs-on: macos-latest # arm64 (M1) — suporta cross-compile para x86_64
+
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Extract version
+        id: version
+        run: echo "VERSION=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Build binaries
+        run: |
+          bun build --compile --target=bun-darwin-arm64 ./src/index.ts --outfile lazyrspec-arm64
+          bun build --compile --target=bun-darwin-x64  ./src/index.ts --outfile lazyrspec-x86_64
+
+      - name: Strip and sign binaries
+        run: |
+          strip lazyrspec-arm64
+          strip lazyrspec-x86_64
+          codesign --sign - --force lazyrspec-arm64
+          codesign --sign - --force lazyrspec-x86_64
+
+      - name: Create tarballs
+        id: tarballs
+        env:
+          VERSION: ${{ steps.version.outputs.VERSION }}
+        run: |
+          TARBALL_ARM64="lazyrspec-${VERSION}-darwin-arm64.tar.gz"
+          TARBALL_X86="lazyrspec-${VERSION}-darwin-x86_64.tar.gz"
+
+          cp lazyrspec-arm64 lazyrspec && tar czf "$TARBALL_ARM64" lazyrspec && rm lazyrspec
+          cp lazyrspec-x86_64 lazyrspec && tar czf "$TARBALL_X86" lazyrspec && rm lazyrspec
+
+          SHA256_ARM64=$(shasum -a 256 "$TARBALL_ARM64" | awk '{print $1}')
+          SHA256_X86=$(shasum -a 256 "$TARBALL_X86" | awk '{print $1}')
+
+          echo "TARBALL_ARM64=$TARBALL_ARM64"   >> "$GITHUB_OUTPUT"
+          echo "TARBALL_X86=$TARBALL_X86"       >> "$GITHUB_OUTPUT"
+          echo "SHA256_ARM64=$SHA256_ARM64"      >> "$GITHUB_OUTPUT"
+          echo "SHA256_X86=$SHA256_X86"          >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            ${{ steps.tarballs.outputs.TARBALL_ARM64 }}
+            ${{ steps.tarballs.outputs.TARBALL_X86 }}
+          generate_release_notes: false
+          name: ${{ github.ref_name }}
+
+      - name: Update Formula in repo
+        env:
+          VERSION: ${{ steps.version.outputs.VERSION }}
+          SHA256_ARM64: ${{ steps.tarballs.outputs.SHA256_ARM64 }}
+          SHA256_X86: ${{ steps.tarballs.outputs.SHA256_X86 }}
+        run: |
+          TAG="v${VERSION}"
+          RELEASE_URL_ARM64="https://github.com/RobertoBarros/lazyrspec/releases/download/${TAG}/lazyrspec-${VERSION}-darwin-arm64.tar.gz"
+          RELEASE_URL_X86="https://github.com/RobertoBarros/lazyrspec/releases/download/${TAG}/lazyrspec-${VERSION}-darwin-x86_64.tar.gz"
+
+          cat > Formula/lazyrspec.rb <<RUBY
+          class Lazyrspec < Formula
+            desc "A lazy TUI for running RSpec tests"
+            homepage "https://github.com/RobertoBarros/lazyrspec"
+            version "${VERSION}"
+            license "MIT"
+
+            on_arm do
+              url "${RELEASE_URL_ARM64}"
+              sha256 "${SHA256_ARM64}"
+            end
+
+            on_intel do
+              url "${RELEASE_URL_X86}"
+              sha256 "${SHA256_X86}"
+            end
+
+            def install
+              bin.install "lazyrspec"
+            end
+
+            test do
+              assert_predicate bin/"lazyrspec", :executable?
+            end
+          end
+          RUBY
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add Formula/lazyrspec.rb
+          git commit -m "Release ${TAG}"
+          git push origin HEAD:master

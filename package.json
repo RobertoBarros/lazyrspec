@@ -17,6 +17,7 @@
     "typescript": "^5"
   },
   "dependencies": {
-    "@opentui/core": "^0.1.96"
+    "@opentui/core": "^0.1.96",
+    "@opentui/core-darwin-x64": "^0.1.99"
   }
 }

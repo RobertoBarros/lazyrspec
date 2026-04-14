@@ -6,17 +6,11 @@ on:
       - "v*"
 
 jobs:
-  build:
-    strategy:
-      matrix:
-        include:
-          - os: macos-latest  # arm64
-            target: bun-darwin-arm64
-            suffix: arm64
-          - os: macos-13      # x86_64 Intel
-            target: bun-darwin-x64
-            suffix: x86_64
-    runs-on: ${{ matrix.os }}
+  release:
+    runs-on: macos-latest  # arm64 — cross-compila x86_64 também
+    permissions:
+      contents: write
+
     steps:
       - uses: actions/checkout@v4
 
@@ -27,82 +21,53 @@ jobs:
       - name: Install dependencies
         run: bun install
 
-      - name: Extract version
-        id: version
-        run: echo "VERSION=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
-
-      - name: Build binary
+      - name: Install x64 native package (cross-compile support)
         run: |
-          bun build --compile --target=${{ matrix.target }} ./src/index.ts --outfile lazyrspec-${{ matrix.suffix }}
-
-      - name: Create tarball
-        id: tarball
-        env:
-          VERSION: ${{ steps.version.outputs.VERSION }}
-        run: |
-          SUFFIX=${{ matrix.suffix }}
-          if [ "$SUFFIX" = "arm64" ]; then
-            TARBALL="lazyrspec-${VERSION}-darwin-arm64.tar.gz"
-          else
-            TARBALL="lazyrspec-${VERSION}-darwin-x86_64.tar.gz"
-          fi
-          cp "lazyrspec-${SUFFIX}" lazyrspec
-          tar czf "$TARBALL" lazyrspec
-          rm lazyrspec
-          echo "TARBALL=$TARBALL" >> "$GITHUB_OUTPUT"
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: binary-${{ matrix.suffix }}
-          path: ${{ steps.tarball.outputs.TARBALL }}
-          retention-days: 1
-
-  release:
-    needs: build
-    runs-on: macos-latest
-    permissions:
-      contents: write
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/download-artifact@v4
-        with:
-          name: binary-arm64
-
-      - uses: actions/download-artifact@v4
-        with:
-          name: binary-x86_64
+          # bun/npm bloqueiam pacotes de outra plataforma.
+          # Download direto do tarball no npm registry bypassa qualquer checagem.
+          X64_VER=$(node -p "require('./package.json').dependencies['@opentui/core-darwin-x64'].replace(/[^0-9.]/g,'')")
+          mkdir -p node_modules/@opentui/core-darwin-x64
+          curl -fsSL "https://registry.npmjs.org/@opentui/core-darwin-x64/-/core-darwin-x64-${X64_VER}.tgz" \
+            | tar xz --strip-components=1 -C node_modules/@opentui/core-darwin-x64
 
       - name: Extract version
         id: version
         run: echo "VERSION=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
 
-      - name: Compute SHA256
-        id: sha
+      - name: Build binaries
+        run: |
+          bun build --compile --target=bun-darwin-arm64 ./src/index.ts --outfile lazyrspec-arm64
+          bun build --compile --target=bun-darwin-x64  ./src/index.ts --outfile lazyrspec-x86_64
+
+      - name: Create tarballs
+        id: tarballs
         env:
           VERSION: ${{ steps.version.outputs.VERSION }}
         run: |
           TARBALL_ARM64="lazyrspec-${VERSION}-darwin-arm64.tar.gz"
           TARBALL_X86="lazyrspec-${VERSION}-darwin-x86_64.tar.gz"
-          echo "TARBALL_ARM64=$TARBALL_ARM64"               >> "$GITHUB_OUTPUT"
-          echo "TARBALL_X86=$TARBALL_X86"                   >> "$GITHUB_OUTPUT"
-          echo "SHA256_ARM64=$(shasum -a 256 "$TARBALL_ARM64" | awk '{print $1}')" >> "$GITHUB_OUTPUT"
-          echo "SHA256_X86=$(shasum -a 256 "$TARBALL_X86"   | awk '{print $1}')" >> "$GITHUB_OUTPUT"
+
+          cp lazyrspec-arm64  lazyrspec && tar czf "$TARBALL_ARM64" lazyrspec && rm lazyrspec
+          cp lazyrspec-x86_64 lazyrspec && tar czf "$TARBALL_X86"   lazyrspec && rm lazyrspec
+
+          echo "TARBALL_ARM64=$TARBALL_ARM64"                                          >> "$GITHUB_OUTPUT"
+          echo "TARBALL_X86=$TARBALL_X86"                                              >> "$GITHUB_OUTPUT"
+          echo "SHA256_ARM64=$(shasum -a 256 "$TARBALL_ARM64" | awk '{print $1}')"    >> "$GITHUB_OUTPUT"
+          echo "SHA256_X86=$(shasum -a 256 "$TARBALL_X86"     | awk '{print $1}')"    >> "$GITHUB_OUTPUT"
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            ${{ steps.sha.outputs.TARBALL_ARM64 }}
-            ${{ steps.sha.outputs.TARBALL_X86 }}
+            ${{ steps.tarballs.outputs.TARBALL_ARM64 }}
+            ${{ steps.tarballs.outputs.TARBALL_X86 }}
           name: ${{ github.ref_name }}
 
       - name: Update Formula in repo
         env:
           VERSION: ${{ steps.version.outputs.VERSION }}
-          SHA256_ARM64: ${{ steps.sha.outputs.SHA256_ARM64 }}
-          SHA256_X86: ${{ steps.sha.outputs.SHA256_X86 }}
+          SHA256_ARM64: ${{ steps.tarballs.outputs.SHA256_ARM64 }}
+          SHA256_X86: ${{ steps.tarballs.outputs.SHA256_X86 }}
         run: |
           TAG="v${VERSION}"
           RELEASE_URL_ARM64="https://github.com/RobertoBarros/lazyrspec/releases/download/${TAG}/lazyrspec-${VERSION}-darwin-arm64.tar.gz"

@@ -114,31 +114,31 @@ jobs:
           RELEASE_URL_X86="https://github.com/RobertoBarros/lazyrspec/releases/download/${TAG}/lazyrspec-${VERSION}-darwin-x86_64.tar.gz"
 
           cat > Formula/lazyrspec.rb <<RUBY
-class Lazyrspec < Formula
-  desc "A lazy TUI for running RSpec tests"
-  homepage "https://github.com/RobertoBarros/lazyrspec"
-  version "${VERSION}"
-  license "MIT"
+          class Lazyrspec < Formula
+            desc "A lazy TUI for running RSpec tests"
+            homepage "https://github.com/RobertoBarros/lazyrspec"
+            version "${VERSION}"
+            license "MIT"
 
-  on_arm do
-    url "${RELEASE_URL_ARM64}"
-    sha256 "${SHA256_ARM64}"
-  end
+            on_arm do
+              url "${RELEASE_URL_ARM64}"
+              sha256 "${SHA256_ARM64}"
+            end
 
-  on_intel do
-    url "${RELEASE_URL_X86}"
-    sha256 "${SHA256_X86}"
-  end
+            on_intel do
+              url "${RELEASE_URL_X86}"
+              sha256 "${SHA256_X86}"
+            end
 
-  def install
-    bin.install "lazyrspec"
-  end
+            def install
+              bin.install "lazyrspec"
+            end
 
-  test do
-    assert_predicate bin/"lazyrspec", :executable?
-  end
-end
-RUBY
+            test do
+              assert_predicate bin/"lazyrspec", :executable?
+            end
+          end
+          RUBY
 
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"

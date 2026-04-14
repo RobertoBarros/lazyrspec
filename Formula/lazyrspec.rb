@@ -1,17 +1,17 @@
 class Lazyrspec < Formula
   desc "A lazy TUI for running RSpec tests"
   homepage "https://github.com/RobertoBarros/lazyrspec"
-  version "0.1.20"
+  version "0.1.21"
   license "MIT"
 
   on_arm do
-    url "https://github.com/RobertoBarros/lazyrspec/releases/download/v0.1.20/lazyrspec-0.1.20-darwin-arm64.tar.gz"
-    sha256 "f73a26a6b5440f043e2709b37081a93fbe5ba937f847d737ed04453c94708fc5"
+    url "https://github.com/RobertoBarros/lazyrspec/releases/download/v0.1.21/lazyrspec-0.1.21-darwin-arm64.tar.gz"
+    sha256 "913b781bda81617488d1e2a284f5810e000d8478c0ec570a732c1953ad351416"
   end
 
   on_intel do
-    url "https://github.com/RobertoBarros/lazyrspec/releases/download/v0.1.20/lazyrspec-0.1.20-darwin-x86_64.tar.gz"
-    sha256 "eb3fa3ae5ebdfd99489c48da2889fbfd774235a2e119c411db55b3d4a0987ebf"
+    url "https://github.com/RobertoBarros/lazyrspec/releases/download/v0.1.21/lazyrspec-0.1.21-darwin-x86_64.tar.gz"
+    sha256 "f3aa6f7962b51ff4db7d11bbff5c4b6d85bbb92259d59fe1c8fb1471c98cec99"
   end
 
   def install

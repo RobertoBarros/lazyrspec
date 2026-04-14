@@ -24,7 +24,7 @@ jobs:
           bun install
           # bun skips platform-specific packages for other platforms.
           # Force-install the x64 native package so cross-compile can resolve it.
-          npm install --no-save --ignore-scripts @opentui/core-darwin-x64@0.1.99
+          npm install --force --no-save --ignore-scripts @opentui/core-darwin-x64@0.1.99
 
       - name: Extract version
         id: version

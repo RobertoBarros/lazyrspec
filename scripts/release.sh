@@ -17,10 +17,15 @@ git tag -a "${TAG}" -m "Release ${TAG}"
 git push origin "${TAG}"
 
 echo "==> Waiting for CI release workflow to complete..."
-# Give GH a few seconds to register the run before watching
 sleep 5
-gh run watch --repo RobertoBarros/lazyrspec \
-  "$(gh run list --repo RobertoBarros/lazyrspec --workflow=release.yml --limit=1 --json databaseId --jq '.[0].databaseId')"
+RUN_ID=$(gh run list --repo RobertoBarros/lazyrspec --workflow=release.yml --limit=1 --json databaseId --jq '.[0].databaseId')
+gh run watch --repo RobertoBarros/lazyrspec "${RUN_ID}"
+
+RUN_STATUS=$(gh run view --repo RobertoBarros/lazyrspec "${RUN_ID}" --json conclusion --jq '.conclusion')
+if [ "${RUN_STATUS}" != "success" ]; then
+  echo "CI failed (${RUN_STATUS}). Aborting tap update."
+  exit 1
+fi
 
 echo "==> Pulling updated Formula from master..."
 git pull origin master

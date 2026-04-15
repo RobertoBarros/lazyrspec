@@ -55,8 +55,10 @@ jobs:
 
       - name: Sign macOS binaries
         run: |
-          codesign --sign - --force lazyrspec-darwin-arm64
-          codesign --sign - --force lazyrspec-darwin-x86_64
+          codesign --remove-signature lazyrspec-darwin-arm64  2>/dev/null || true
+          codesign --remove-signature lazyrspec-darwin-x86_64 2>/dev/null || true
+          codesign --sign - --force --no-strict lazyrspec-darwin-arm64
+          codesign --sign - --force --no-strict lazyrspec-darwin-x86_64
 
       - name: Create tarballs
         id: tarballs

@@ -53,6 +53,11 @@ jobs:
           bun build --compile --target=bun-linux-x64    ./src/index.ts --outfile lazyrspec-linux-x86_64
           bun build --compile --target=bun-linux-arm64  ./src/index.ts --outfile lazyrspec-linux-arm64
 
+      - name: Sign macOS binaries
+        run: |
+          codesign --sign - lazyrspec-darwin-arm64
+          codesign --sign - lazyrspec-darwin-x86_64
+
       - name: Create tarballs
         id: tarballs
         env:

@@ -30,9 +30,6 @@ class Lazyrspec < Formula
 
   def install
     bin.install "lazyrspec"
-    on_macos do
-      system "codesign", "--sign", "-", "--force", "--no-strict", bin/"lazyrspec"
-    end
   end
 
   test do

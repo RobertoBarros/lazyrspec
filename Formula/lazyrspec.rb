@@ -4,8 +4,6 @@ class Lazyrspec < Formula
   version "0.1.28"
   license "MIT"
 
-  bottle :unneeded
-
   on_macos do
     on_arm do
       url "https://github.com/RobertoBarros/lazyrspec/releases/download/v0.1.28/lazyrspec-0.1.28-darwin-arm64.tar.gz"

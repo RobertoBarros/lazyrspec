@@ -110,8 +110,6 @@ jobs:
             version "${VERSION}"
             license "MIT"
 
-            bottle :unneeded
-
             on_macos do
               on_arm do
                 url "${BASE_URL}/lazyrspec-${VERSION}-darwin-arm64.tar.gz"

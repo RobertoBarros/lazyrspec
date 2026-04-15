@@ -23,14 +23,24 @@ jobs:
       - name: Install dependencies
         run: bun install
 
-      - name: Install x64 native package (cross-compile support)
+      - name: Install cross-compile native packages
         run: |
           # bun/npm bloqueiam pacotes de outra plataforma.
           # Download direto do tarball no npm registry bypassa qualquer checagem.
           X64_VER=$(node -p "require('./package.json').dependencies['@opentui/core-darwin-x64'].replace(/[^0-9.]/g,'')")
+          LINUX_VER=$(node -p "require('./package.json').dependencies['@opentui/core-linux-x64'].replace(/[^0-9.]/g,'')")
+
           mkdir -p node_modules/@opentui/core-darwin-x64
           curl -fsSL "https://registry.npmjs.org/@opentui/core-darwin-x64/-/core-darwin-x64-${X64_VER}.tgz" \
             | tar xz --strip-components=1 -C node_modules/@opentui/core-darwin-x64
+
+          mkdir -p node_modules/@opentui/core-linux-x64
+          curl -fsSL "https://registry.npmjs.org/@opentui/core-linux-x64/-/core-linux-x64-${LINUX_VER}.tgz" \
+            | tar xz --strip-components=1 -C node_modules/@opentui/core-linux-x64
+
+          mkdir -p node_modules/@opentui/core-linux-arm64
+          curl -fsSL "https://registry.npmjs.org/@opentui/core-linux-arm64/-/core-linux-arm64-${LINUX_VER}.tgz" \
+            | tar xz --strip-components=1 -C node_modules/@opentui/core-linux-arm64
 
       - name: Extract version
         id: version
@@ -38,42 +48,55 @@ jobs:
 
       - name: Build binaries
         run: |
-          bun build --compile --target=bun-darwin-arm64 ./src/index.ts --outfile lazyrspec-arm64
-          bun build --compile --target=bun-darwin-x64  ./src/index.ts --outfile lazyrspec-x86_64
+          bun build --compile --target=bun-darwin-arm64  ./src/index.ts --outfile lazyrspec-darwin-arm64
+          bun build --compile --target=bun-darwin-x64   ./src/index.ts --outfile lazyrspec-darwin-x86_64
+          bun build --compile --target=bun-linux-x64    ./src/index.ts --outfile lazyrspec-linux-x86_64
+          bun build --compile --target=bun-linux-arm64  ./src/index.ts --outfile lazyrspec-linux-arm64
 
       - name: Create tarballs
         id: tarballs
         env:
           VERSION: ${{ steps.version.outputs.VERSION }}
         run: |
-          TARBALL_ARM64="lazyrspec-${VERSION}-darwin-arm64.tar.gz"
-          TARBALL_X86="lazyrspec-${VERSION}-darwin-x86_64.tar.gz"
+          TARBALL_DARWIN_ARM64="lazyrspec-${VERSION}-darwin-arm64.tar.gz"
+          TARBALL_DARWIN_X86="lazyrspec-${VERSION}-darwin-x86_64.tar.gz"
+          TARBALL_LINUX_X86="lazyrspec-${VERSION}-linux-x86_64.tar.gz"
+          TARBALL_LINUX_ARM64="lazyrspec-${VERSION}-linux-arm64.tar.gz"
 
-          cp lazyrspec-arm64  lazyrspec && tar czf "$TARBALL_ARM64" lazyrspec && rm lazyrspec
-          cp lazyrspec-x86_64 lazyrspec && tar czf "$TARBALL_X86"   lazyrspec && rm lazyrspec
+          cp lazyrspec-darwin-arm64   lazyrspec && tar czf "$TARBALL_DARWIN_ARM64" lazyrspec && rm lazyrspec
+          cp lazyrspec-darwin-x86_64  lazyrspec && tar czf "$TARBALL_DARWIN_X86"   lazyrspec && rm lazyrspec
+          cp lazyrspec-linux-x86_64   lazyrspec && tar czf "$TARBALL_LINUX_X86"    lazyrspec && rm lazyrspec
+          cp lazyrspec-linux-arm64    lazyrspec && tar czf "$TARBALL_LINUX_ARM64"   lazyrspec && rm lazyrspec
 
-          echo "TARBALL_ARM64=$TARBALL_ARM64"                                          >> "$GITHUB_OUTPUT"
-          echo "TARBALL_X86=$TARBALL_X86"                                              >> "$GITHUB_OUTPUT"
-          echo "SHA256_ARM64=$(shasum -a 256 "$TARBALL_ARM64" | awk '{print $1}')"    >> "$GITHUB_OUTPUT"
-          echo "SHA256_X86=$(shasum -a 256 "$TARBALL_X86"     | awk '{print $1}')"    >> "$GITHUB_OUTPUT"
+          echo "TARBALL_DARWIN_ARM64=$TARBALL_DARWIN_ARM64"                                          >> "$GITHUB_OUTPUT"
+          echo "TARBALL_DARWIN_X86=$TARBALL_DARWIN_X86"                                              >> "$GITHUB_OUTPUT"
+          echo "TARBALL_LINUX_X86=$TARBALL_LINUX_X86"                                                >> "$GITHUB_OUTPUT"
+          echo "TARBALL_LINUX_ARM64=$TARBALL_LINUX_ARM64"                                            >> "$GITHUB_OUTPUT"
+          echo "SHA256_DARWIN_ARM64=$(shasum -a 256 "$TARBALL_DARWIN_ARM64" | awk '{print $1}')"     >> "$GITHUB_OUTPUT"
+          echo "SHA256_DARWIN_X86=$(shasum -a 256 "$TARBALL_DARWIN_X86"     | awk '{print $1}')"     >> "$GITHUB_OUTPUT"
+          echo "SHA256_LINUX_X86=$(shasum -a 256 "$TARBALL_LINUX_X86"       | awk '{print $1}')"     >> "$GITHUB_OUTPUT"
+          echo "SHA256_LINUX_ARM64=$(shasum -a 256 "$TARBALL_LINUX_ARM64"   | awk '{print $1}')"     >> "$GITHUB_OUTPUT"
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            ${{ steps.tarballs.outputs.TARBALL_ARM64 }}
-            ${{ steps.tarballs.outputs.TARBALL_X86 }}
+            ${{ steps.tarballs.outputs.TARBALL_DARWIN_ARM64 }}
+            ${{ steps.tarballs.outputs.TARBALL_DARWIN_X86 }}
+            ${{ steps.tarballs.outputs.TARBALL_LINUX_X86 }}
+            ${{ steps.tarballs.outputs.TARBALL_LINUX_ARM64 }}
           name: ${{ github.ref_name }}
 
       - name: Update Formula in repo
         env:
           VERSION: ${{ steps.version.outputs.VERSION }}
-          SHA256_ARM64: ${{ steps.tarballs.outputs.SHA256_ARM64 }}
-          SHA256_X86: ${{ steps.tarballs.outputs.SHA256_X86 }}
+          SHA256_DARWIN_ARM64: ${{ steps.tarballs.outputs.SHA256_DARWIN_ARM64 }}
+          SHA256_DARWIN_X86: ${{ steps.tarballs.outputs.SHA256_DARWIN_X86 }}
+          SHA256_LINUX_X86: ${{ steps.tarballs.outputs.SHA256_LINUX_X86 }}
+          SHA256_LINUX_ARM64: ${{ steps.tarballs.outputs.SHA256_LINUX_ARM64 }}
         run: |
           TAG="v${VERSION}"
-          RELEASE_URL_ARM64="https://github.com/RobertoBarros/lazyrspec/releases/download/${TAG}/lazyrspec-${VERSION}-darwin-arm64.tar.gz"
-          RELEASE_URL_X86="https://github.com/RobertoBarros/lazyrspec/releases/download/${TAG}/lazyrspec-${VERSION}-darwin-x86_64.tar.gz"
+          BASE_URL="https://github.com/RobertoBarros/lazyrspec/releases/download/${TAG}"
 
           cat > Formula/lazyrspec.rb <<RUBY
           class Lazyrspec < Formula
@@ -82,14 +105,28 @@ jobs:
             version "${VERSION}"
             license "MIT"
 
-            on_arm do
-              url "${RELEASE_URL_ARM64}"
-              sha256 "${SHA256_ARM64}"
+            on_macos do
+              on_arm do
+                url "${BASE_URL}/lazyrspec-${VERSION}-darwin-arm64.tar.gz"
+                sha256 "${SHA256_DARWIN_ARM64}"
+              end
+
+              on_intel do
+                url "${BASE_URL}/lazyrspec-${VERSION}-darwin-x86_64.tar.gz"
+                sha256 "${SHA256_DARWIN_X86}"
+              end
             end
 
-            on_intel do
-              url "${RELEASE_URL_X86}"
-              sha256 "${SHA256_X86}"
+            on_linux do
+              on_arm do
+                url "${BASE_URL}/lazyrspec-${VERSION}-linux-arm64.tar.gz"
+                sha256 "${SHA256_LINUX_ARM64}"
+              end
+
+              on_intel do
+                url "${BASE_URL}/lazyrspec-${VERSION}-linux-x86_64.tar.gz"
+                sha256 "${SHA256_LINUX_X86}"
+              end
             end
 
             def install

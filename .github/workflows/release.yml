@@ -53,13 +53,6 @@ jobs:
           bun build --compile --target=bun-linux-x64    ./src/index.ts --outfile lazyrspec-linux-x86_64
           bun build --compile --target=bun-linux-arm64  ./src/index.ts --outfile lazyrspec-linux-arm64
 
-      - name: Sign macOS binaries
-        run: |
-          codesign --remove-signature lazyrspec-darwin-arm64  2>/dev/null || true
-          codesign --remove-signature lazyrspec-darwin-x86_64 2>/dev/null || true
-          codesign --sign - --force --no-strict lazyrspec-darwin-arm64
-          codesign --sign - --force --no-strict lazyrspec-darwin-x86_64
-
       - name: Create tarballs
         id: tarballs
         env:
@@ -143,6 +136,9 @@ jobs:
 
             def install
               bin.install "lazyrspec"
+              on_macos do
+                system "codesign", "--sign", "-", "--force", "--no-strict", bin/"lazyrspec"
+              end
             end
 
             test do

@@ -1,32 +1,32 @@
 class Lazyrspec < Formula
   desc "A lazy TUI for running RSpec tests"
   homepage "https://github.com/RobertoBarros/lazyrspec"
-  version "0.1.26"
+  version "0.1.28"
   license "MIT"
 
   bottle :unneeded
 
   on_macos do
     on_arm do
-      url "https://github.com/RobertoBarros/lazyrspec/releases/download/v0.1.26/lazyrspec-0.1.26-darwin-arm64.tar.gz"
-      sha256 "6f1cbe3376590053e47c2d793450428f860c323d318607c84674e61e0ac30624"
+      url "https://github.com/RobertoBarros/lazyrspec/releases/download/v0.1.28/lazyrspec-0.1.28-darwin-arm64.tar.gz"
+      sha256 "7325b191482171794b974fc8b3da7dbdbfad80b5b238398ccd5a553fb52691b7"
     end
 
     on_intel do
-      url "https://github.com/RobertoBarros/lazyrspec/releases/download/v0.1.26/lazyrspec-0.1.26-darwin-x86_64.tar.gz"
-      sha256 "67b6b8b6f66820bb767d7ae99c47a141da1802ea5b33ae5d4dc7f6f946afeee4"
+      url "https://github.com/RobertoBarros/lazyrspec/releases/download/v0.1.28/lazyrspec-0.1.28-darwin-x86_64.tar.gz"
+      sha256 "a7d23377a78a7533dd95610b4e378db375535fc2950bf25968675f851284bcf1"
     end
   end
 
   on_linux do
     on_arm do
-      url "https://github.com/RobertoBarros/lazyrspec/releases/download/v0.1.26/lazyrspec-0.1.26-linux-arm64.tar.gz"
-      sha256 "b63bdc22e3ff3bc36430382d847b16dde045d3592a3d7f7a1c2ea47c69f72073"
+      url "https://github.com/RobertoBarros/lazyrspec/releases/download/v0.1.28/lazyrspec-0.1.28-linux-arm64.tar.gz"
+      sha256 "8ccd08d102ce3c6fbef7ff833eb599e2ecb63eb27a5c6d2c0952968398b824ee"
     end
 
     on_intel do
-      url "https://github.com/RobertoBarros/lazyrspec/releases/download/v0.1.26/lazyrspec-0.1.26-linux-x86_64.tar.gz"
-      sha256 "1d162d05e545f9d72e4c94be04010bed8afe923629f276582e65fdca86ae4e6e"
+      url "https://github.com/RobertoBarros/lazyrspec/releases/download/v0.1.28/lazyrspec-0.1.28-linux-x86_64.tar.gz"
+      sha256 "f0c22b7715aaa95ebae061f1682a7083bf0bb0ad890b55b2f241714725e7d85f"
     end
   end
 

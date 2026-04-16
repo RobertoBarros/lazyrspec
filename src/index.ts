@@ -4,6 +4,8 @@ import {
   runRspec,
   buildOptions,
   buildSummaryText,
+  type RSpecResult,
+  type RSpecExample,
 } from "./rspec";
 import {
   checkRubocopInstalled,
@@ -11,26 +13,23 @@ import {
   buildRubocopOptions,
   buildRubocopSummaryText,
   flattenOffenses,
+  type RubocopResult,
+  type RubocopOffenseEntry,
 } from "./rubocop";
+import { type ColoredSelectOption } from "./colored-select";
 
 checkRspecInstalled();
 
 const specPath = process.argv[2] || "spec";
 const exitAfterStart = process.env.LAZYRSPEC_EXIT_AFTER_START === "1";
-
-let rspecResult = runRspec(specPath);
-let examples = rspecResult.examples;
-let options = buildOptions(examples);
-
-if (options.length === 0) {
-  console.log("No examples found.");
-  process.exit(0);
-}
-
 const rubocopAvailable = checkRubocopInstalled();
-let rubocopResult = rubocopAvailable ? runRubocop(".") : null;
-let offenseEntries = rubocopResult ? flattenOffenses(rubocopResult) : [];
-let rubocopOpts = buildRubocopOptions(offenseEntries);
+
+let rspecResult: RSpecResult;
+let examples: RSpecExample[] = [];
+let options: ColoredSelectOption[] = [];
+let rubocopResult: RubocopResult | null = null;
+let offenseEntries: RubocopOffenseEntry[] = [];
+let rubocopOpts: ColoredSelectOption[] = [];
 
 let summaryText = "";
 let hidePassed = false;
@@ -44,7 +43,9 @@ const {
   setRubocopOptions,
   updateRubocopSummary,
   setActivePanel,
-} = await createAppWindows(examples[0]!, options[0]!);
+  showProcessingOverlay,
+  hideProcessingOverlay,
+} = await createAppWindows();
 
 function applyFilter() {
   const visibleExamples = hidePassed
@@ -62,13 +63,46 @@ function refreshSummary() {
   updateSummary(summaryText);
 }
 
-applyFilter();
-refreshSummary();
-
-setRubocopOptions(rubocopOpts);
-if (rubocopResult) {
-  updateRubocopSummary(buildRubocopSummaryText(rubocopResult.summary));
+function runRubocop_() {
+  rubocopResult = runRubocop(".");
+  offenseEntries = flattenOffenses(rubocopResult!);
+  rubocopOpts = buildRubocopOptions(offenseEntries);
+  setRubocopOptions(rubocopOpts);
+  updateRubocopSummary(buildRubocopSummaryText(rubocopResult!.summary));
 }
+
+renderer.start();
+
+// Initial run
+showProcessingOverlay(" running rspec");
+setTimeout(() => {
+  rspecResult = runRspec(specPath);
+  examples = rspecResult.examples;
+  options = buildOptions(examples);
+
+  if (examples.length === 0) {
+    hideProcessingOverlay();
+    elapsed.destroy();
+    renderer.destroy();
+    console.log("No examples found.");
+    process.exit(0);
+  }
+
+  applyFilter();
+  refreshSummary();
+
+  if (rubocopAvailable) {
+    showProcessingOverlay(" running rubocop");
+    setTimeout(() => {
+      runRubocop_();
+      hideProcessingOverlay();
+      elapsed.reset();
+    }, 10);
+  } else {
+    hideProcessingOverlay();
+    elapsed.reset();
+  }
+}, 10);
 
 renderer.keyInput.on("keypress", (key) => {
   if (key.name === "q" && !key.ctrl && !key.meta) {
@@ -89,7 +123,7 @@ renderer.keyInput.on("keypress", (key) => {
     applyFilter();
   }
   if (key.name === "r" && !key.ctrl && !key.meta) {
-    elapsed.showMessage(" Running...");
+    showProcessingOverlay(" running rspec");
     setTimeout(() => {
       rspecResult = runRspec(specPath);
       examples = rspecResult.examples;
@@ -99,19 +133,19 @@ renderer.keyInput.on("keypress", (key) => {
       refreshSummary();
 
       if (rubocopAvailable) {
-        rubocopResult = runRubocop(".");
-        offenseEntries = flattenOffenses(rubocopResult!);
-        rubocopOpts = buildRubocopOptions(offenseEntries);
-        setRubocopOptions(rubocopOpts);
-        updateRubocopSummary(buildRubocopSummaryText(rubocopResult!.summary));
+        showProcessingOverlay(" running rubocop");
+        setTimeout(() => {
+          runRubocop_();
+          hideProcessingOverlay();
+          elapsed.reset();
+        }, 10);
+      } else {
+        hideProcessingOverlay();
+        elapsed.reset();
       }
-
-      elapsed.reset();
     }, 10);
   }
 });
-
-renderer.start();
 
 if (exitAfterStart) {
   elapsed.destroy();

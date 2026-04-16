@@ -5,6 +5,13 @@ import {
   buildOptions,
   buildSummaryText,
 } from "./rspec";
+import {
+  checkRubocopInstalled,
+  runRubocop,
+  buildRubocopOptions,
+  buildRubocopSummaryText,
+  flattenOffenses,
+} from "./rubocop";
 
 checkRspecInstalled();
 
@@ -20,11 +27,24 @@ if (options.length === 0) {
   process.exit(0);
 }
 
+const rubocopAvailable = checkRubocopInstalled();
+let rubocopResult = rubocopAvailable ? runRubocop(".") : null;
+let offenseEntries = rubocopResult ? flattenOffenses(rubocopResult) : [];
+let rubocopOpts = buildRubocopOptions(offenseEntries);
+
 let summaryText = "";
 let hidePassed = false;
+let activePanel: "rspec" | "rubocop" = "rspec";
 
-const { renderer, elapsed, setVisibleOptions, updateSummary } =
-  await createAppWindows(examples[0]!, options[0]!);
+const {
+  renderer,
+  elapsed,
+  setVisibleOptions,
+  updateSummary,
+  setRubocopOptions,
+  updateRubocopSummary,
+  setActivePanel,
+} = await createAppWindows(examples[0]!, options[0]!);
 
 function applyFilter() {
   const visibleExamples = hidePassed
@@ -45,18 +65,31 @@ function refreshSummary() {
 applyFilter();
 refreshSummary();
 
+setRubocopOptions(rubocopOpts);
+if (rubocopResult) {
+  updateRubocopSummary(buildRubocopSummaryText(rubocopResult.summary));
+}
+
 renderer.keyInput.on("keypress", (key) => {
   if (key.name === "q" && !key.ctrl && !key.meta) {
     elapsed.destroy();
     renderer.destroy();
     process.exit(0);
   }
-  if (key.name === "f" && !key.ctrl && !key.meta) {
+  if (key.name === "1" && !key.ctrl && !key.meta) {
+    activePanel = "rspec";
+    setActivePanel(activePanel);
+  }
+  if (key.name === "2" && !key.ctrl && !key.meta) {
+    activePanel = "rubocop";
+    setActivePanel(activePanel);
+  }
+  if (key.name === "f" && !key.ctrl && !key.meta && activePanel === "rspec") {
     hidePassed = !hidePassed;
     applyFilter();
   }
   if (key.name === "r" && !key.ctrl && !key.meta) {
-    elapsed.showMessage(" Running rspec...");
+    elapsed.showMessage(" Running...");
     setTimeout(() => {
       rspecResult = runRspec(specPath);
       examples = rspecResult.examples;
@@ -64,6 +97,15 @@ renderer.keyInput.on("keypress", (key) => {
 
       applyFilter();
       refreshSummary();
+
+      if (rubocopAvailable) {
+        rubocopResult = runRubocop(".");
+        offenseEntries = flattenOffenses(rubocopResult!);
+        rubocopOpts = buildRubocopOptions(offenseEntries);
+        setRubocopOptions(rubocopOpts);
+        updateRubocopSummary(buildRubocopSummaryText(rubocopResult!.summary));
+      }
+
       elapsed.reset();
     }, 10);
   }

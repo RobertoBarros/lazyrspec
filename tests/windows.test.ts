@@ -71,7 +71,7 @@ describe("createAppWindows", () => {
     windows.updateSummary("2 examples");
     await renderOnce();
 
-    expect(captureCharFrame()).toContain("Tests (2 examples)");
+    expect(captureCharFrame()).toContain("1. RSpec (2 examples)");
   });
 
   test("updates the details panel when the selected option changes", async () => {

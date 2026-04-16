@@ -27,6 +27,8 @@ export interface AppWindows {
   setRubocopOptions(options: ColoredSelectOption[]): void;
   updateRubocopSummary(summaryText: string): void;
   setActivePanel(panel: "rspec" | "rubocop"): void;
+  showProcessingOverlay(message: string): void;
+  hideProcessingOverlay(): void;
 }
 
 export interface CreateAppWindowsOptions {
@@ -34,8 +36,6 @@ export interface CreateAppWindowsOptions {
 }
 
 export async function createAppWindows(
-  initialExample: RSpecExample,
-  initialOption: ColoredSelectOption,
   opts: CreateAppWindowsOptions = {},
 ): Promise<AppWindows> {
   const renderer =
@@ -75,7 +75,7 @@ export async function createAppWindows(
   const rspecSelect = createColoredSelect(renderer, {
     width: "100%",
     height: "100%",
-    options: [initialOption],
+    options: [],
     selectedIndex: 0,
     backgroundColor: "transparent",
     selectedBackgroundColor: "#334455",
@@ -136,13 +136,13 @@ export async function createAppWindows(
   });
 
   const titleText = new TextRenderable(renderer, {
-    content: initialExample.full_description,
+    content: "",
     wrapMode: "word",
-    fg: statusColor[initialExample.status] || "#ffffff",
+    fg: "#ffffff",
   });
 
   const detailText = new TextRenderable(renderer, {
-    content: initialOption.value.detail,
+    content: "",
     wrapMode: "word",
     fg: "#ffffff",
   });
@@ -168,8 +168,36 @@ export async function createAppWindows(
   root.add(footer);
   renderer.root.add(root);
 
-  let visibleExamples: RSpecExample[] = [initialExample];
-  let visibleOptions: ColoredSelectOption[] = [initialOption];
+  const overlayBox = new BoxRenderable(renderer, {
+    position: "absolute",
+    width: 30,
+    height: 5,
+    top: "50%",
+    left: "50%",
+    zIndex: 1000,
+    border: true,
+    borderStyle: "rounded",
+    borderColor: "#ffcc44",
+    backgroundColor: "#1a1a2e",
+    shouldFill: true,
+    justifyContent: "center",
+    alignItems: "center",
+    visible: false,
+  });
+  overlayBox.translateX = -15;
+  overlayBox.translateY = -2;
+
+  const overlayText = new TextRenderable(renderer, {
+    content: "",
+    fg: "#ffcc44",
+    wrapMode: "word",
+  });
+
+  overlayBox.add(overlayText);
+  renderer.root.add(overlayBox);
+
+  let visibleExamples: RSpecExample[] = [];
+  let visibleOptions: ColoredSelectOption[] = [];
   let rubocopOptions: ColoredSelectOption[] = [];
   let activePanel: "rspec" | "rubocop" = "rspec";
 
@@ -266,6 +294,13 @@ export async function createAppWindows(
     },
     setActivePanel(panel) {
       setPanelActive(panel);
+    },
+    showProcessingOverlay(message) {
+      overlayText.content = message;
+      overlayBox.visible = true;
+    },
+    hideProcessingOverlay() {
+      overlayBox.visible = false;
     },
   };
 }

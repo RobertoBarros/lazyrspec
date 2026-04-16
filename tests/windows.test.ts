@@ -51,9 +51,7 @@ describe("createAppWindows", () => {
 
     const examples = [passedExample, failedExample];
     const options = buildOptions(examples);
-    const windows = await createAppWindows(examples[0]!, options[0]!, {
-      renderer,
-    });
+    const windows = await createAppWindows({ renderer });
 
     elapsed = windows.elapsed;
 
